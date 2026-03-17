@@ -15,7 +15,12 @@ import os
 
 #open filepicker
 Tk().withdraw()
-file_path = filedialog.askopenfilename(title="Select Damper Dyno CSV")
+initial_csv_folder = r"C:\Users\DYNO\Documents\CTW Automation\Data\CSV Files"
+file_path = filedialog.askopenfilename(
+    title="Select CSV File",
+    initialdir= initial_csv_folder,
+    filetypes=[("CSV files", "*.csv"), ("all files", "*.*")]
+)
 
 if not file_path:
     print("No file selected.")
@@ -159,8 +164,11 @@ report_text = "\n".join(report_lines)
 plt.figtext(0.15, 0.02, report_text, ha="left", fontsize=11)
 
 #Save Report File
+output_folder = r"C:\Users\DYNO\Documents\CTW Automation\Data\DC_Reports"
+os.makedirs(output_folder, exist_ok=True)
+
 report_filename = f"DC_Report_['{data_filename}']__{timestamp}.jpg"
-save_path = os.path.join(os.path.dirname(file_path), report_filename)
+save_path = os.path.join(output_folder, report_filename)
 
 plt.savefig(save_path, dpi=300, bbox_inches='tight')
 plt.close()
