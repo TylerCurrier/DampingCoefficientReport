@@ -3,6 +3,12 @@
 #March 16, 2026
 #49ers Racing IC - Vehicle Dynamics
 
+#!!Things to add
+#   input for damper settings to put on report
+#   more test specifics: valve settings, lsC, hsC, lsR, hsR.
+#   look at what constant values can be grabbed from the csv and maybe include some
+
+
 #This program is for interpreting CSV outputs from the CTW damper dyno
 
 #import libraries
@@ -15,7 +21,8 @@ import os
 
 #open filepicker
 Tk().withdraw()
-initial_csv_folder = r"C:\Users\DYNO\Documents\CTW Automation\Data\CSV Files"
+#initial_csv_folder = r"C:\Users\DYNO\Documents\CTW Automation\Data\CSV Files"
+initial_csv_folder = r"E:\FSAE"
 file_path = filedialog.askopenfilename(
     title="Select CSV File",
     initialdir= initial_csv_folder,
@@ -119,10 +126,14 @@ sig_velocities = [v for v in sig_velocities if v <= max_v]
 sig_rebound = np.interp(sig_velocities, vel_rebound, c_rebound)
 sig_compression = np.interp(sig_velocities, vel_compression, c_compression)
 
-#Metadata
+#Metadata -- user input
 damper_used = input("Enter damper used: ")
 test_type = input("Enter test type: ")
 tester = input("Enter tester name: ")
+d_lsC = input("Enter low speed compression valve setting: ")
+d_hsC = input("Enter high speed compression valve setting: ")
+d_lsR = input("Enter low speed rebound valve setting: ")
+d_hsR = input("Enter high speed rebound valve setting: ")
 
 now = datetime.now()
 date_time_string = now.strftime("%m/%d/%Y %H:%M:%S")
@@ -162,6 +173,10 @@ plt.title(title, fontsize=14)
 subtitle = f"{date_time_string}\nDamper: {damper_used} | Test: {test_type} | Tester: {tester}"
 plt.figtext(0.5, 0.93, subtitle, ha="center", fontsize=10)
 
+subtitle = f"Low Speed Compression: {d_lsC} | Low Speed Rebound: {d_lsR}\nHigh Speed Compression: {d_hsC} | High Speed Rebound: {d_hsR}"
+plt.figtext(0.7, 0.1, subtitle, ha="center", fontsize=10)
+
+
 #Report Text
 report_lines = ["Damping Coefficients Values\n"]
 
@@ -170,10 +185,11 @@ for v,r,c in zip(sig_velocities, sig_rebound, sig_compression):
 
 report_text = "\n".join(report_lines)
 
-plt.figtext(0.15, 0.02, report_text, ha="left", fontsize=11)
+plt.figtext(0.1, 0.1, report_text, ha="left", fontsize=11)
 
 #Save Report File
-output_folder = r"C:\Users\DYNO\Documents\CTW Automation\Data\DC_Reports"
+#output_folder = r"C:\Users\DYNO\Documents\CTW Automation\Data\DC_Reports"
+output_folder = r"E:\FSAE"
 os.makedirs(output_folder, exist_ok=True)
 
 report_filename = f"DC_Report_['{data_filename}']__{timestamp}.jpg"
