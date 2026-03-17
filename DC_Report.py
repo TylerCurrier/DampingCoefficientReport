@@ -125,14 +125,25 @@ test_type = input("Enter test type: ")
 tester = input("Enter tester name: ")
 
 now = datetime.now()
-date_time_string = now.strftime("%Y-%m-%d %H:%M:%S")
+date_time_string = now.strftime("%m/%d/%Y %H:%M:%S")
 timestamp = now.strftime("%m-%d-%Y")
 
 #Plot
-plt.figure(figsize=(10,7))
 
-plt.plot(vel_rebound, c_rebound, label="Rebound")
-plt.plot(vel_compression, c_compression, label="Compression")
+min_plot_velocity = 0.2  # in/s, adjust as needed
+# For rebound
+mask_rebound = vel_rebound >= min_plot_velocity
+vel_rebound_plot = vel_rebound[mask_rebound]
+c_rebound_plot = c_rebound[mask_rebound]
+
+# For compression
+mask_compression = vel_compression >= min_plot_velocity
+vel_compression_plot = vel_compression[mask_compression]
+c_compression_plot = c_compression[mask_compression]
+
+plt.figure(figsize=(10,7))
+plt.plot(vel_rebound_plot, c_rebound_plot, label="Rebound")
+plt.plot(vel_compression_plot, c_compression_plot, label="Compression")
 
 plt.scatter(sig_velocities, sig_rebound)
 plt.scatter(sig_velocities, sig_compression)
@@ -141,9 +152,7 @@ plt.xlabel("Velocity (in/s)")
 plt.ylabel("Damping Coefficient (lb*s/in)")
 plt.grid(True)
 plt.legend()
-
-plt.xlim(0, max_v)
-
+plt.xlim(min_plot_velocity, max_v)
 plt.subplots_adjust(bottom=0.30)
 
 #Title
@@ -154,7 +163,7 @@ subtitle = f"{date_time_string}\nDamper: {damper_used} | Test: {test_type} | Tes
 plt.figtext(0.5, 0.93, subtitle, ha="center", fontsize=10)
 
 #Report Text
-report_lines = ["Significant Damping Coefficients\n"]
+report_lines = ["Damping Coefficients Values\n"]
 
 for v,r,c in zip(sig_velocities, sig_rebound, sig_compression):
     report_lines.append(f"{v} in/s  | Rebound: {r:.2f}  Compression: {c:.2f}")
