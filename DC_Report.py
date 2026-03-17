@@ -1,7 +1,9 @@
-#DC_Report
+#DC_Report.py
 #Tyler Currier
 #March 16, 2026
 #49ers Racing IC - Vehicle Dynamics
+
+#This program is for interpreting CSV outputs from the CTW damper dyno
 
 #import libraries
 import numpy as np
@@ -168,4 +170,3 @@ os.startfile(save_path)
 
 print("Report generated:")
 print(save_path)
-#
