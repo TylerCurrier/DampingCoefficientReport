@@ -1,22 +1,3 @@
-"""
-#psuedo
-import libraries
-load csv from system files
-parse velocity and force into arrays
-sort forces by velocity
-take differentials
-plot onto single graph
-    range - o inches per second, max velocity from run
-grab coeffs at significant points and add a point on the graph to denote them
-    significant points - 1,2,4,6,8,10
-    report sig points - 1(low speed), 5(medium Speed), 10(high Speed) *these will be called out below the graph
-Create Title for the report = DC_Report_["data filename"]
-Create Filename for report = DC_Report_["data filename"]_date+time
-ask for = damper used, test type, tester
-Generate Subtitles below title = date + time, damper used, test type, tester
-create .jpg report and save to files
-"""
-
 #DC_Report
 #Tyler Currier
 #March 16, 2026
@@ -40,9 +21,7 @@ if not file_path:
 
 data_filename = os.path.splitext(os.path.basename(file_path))[0]
 
-#-------------------------------------------------
-# Detect header row
-#-------------------------------------------------
+#Detect Data Header Row
 with open(file_path, 'r') as f:
     lines = f.readlines()
 
@@ -56,14 +35,10 @@ if header_row is None:
     print("Could not detect velocity/force header row.")
     exit()
 
-#-------------------------------------------------
-# load csv
-#-------------------------------------------------
+#Load CSV File
 data = pd.read_csv(file_path, skiprows=header_row)
 
-#-------------------------------------------------
-# detect velocity and force columns
-#-------------------------------------------------
+#Detect Velocity and Force Columns
 velocity_col = None
 force_col = None
 
@@ -80,16 +55,12 @@ if velocity_col is None or force_col is None:
 velocity = data[velocity_col].to_numpy()
 force = data[force_col].to_numpy()
 
-#-------------------------------------------------
-# remove NaN values
-#-------------------------------------------------
+#Remove NaN Values
 valid = ~(np.isnan(velocity) | np.isnan(force))
 velocity = velocity[valid]
 force = force[valid]
 
-#-------------------------------------------------
-# Split compression and rebound
-#-------------------------------------------------
+#Split Compression and Rebound Values
 rebound_mask = velocity > 0
 compression_mask = velocity < 0
 
@@ -99,9 +70,7 @@ force_rebound = force[rebound_mask]
 vel_compression = np.abs(velocity[compression_mask])
 force_compression = np.abs(force[compression_mask])
 
-#-------------------------------------------------
-# Function to bin dyno data
-#-------------------------------------------------
+#Bin Dyno Data
 def bin_data(vel, force, bin_width=0.05):
 
     bins = np.arange(0, np.max(vel), bin_width)
@@ -122,25 +91,19 @@ def bin_data(vel, force, bin_width=0.05):
 vel_rebound, force_rebound = bin_data(vel_rebound, force_rebound)
 vel_compression, force_compression = bin_data(vel_compression, force_compression)
 
-#-------------------------------------------------
-# Smooth forces slightly
-#-------------------------------------------------
+#Smooth Forces
 window = 5
 
 force_rebound = np.convolve(force_rebound, np.ones(window)/window, mode='same')
 force_compression = np.convolve(force_compression, np.ones(window)/window, mode='same')
 
-#-------------------------------------------------
-# Compute damping coefficient  c = F/v
-#-------------------------------------------------
+#Compute Damping Coefficient  c = F/v
 min_velocity = 0.05
 
 c_rebound = np.abs(force_rebound / np.maximum(vel_rebound, min_velocity))
 c_compression = np.abs(force_compression / np.maximum(vel_compression, min_velocity))
 
-#-------------------------------------------------
-# Significant velocities
-#-------------------------------------------------
+#Significant Velocities
 sig_velocities = [1,2,4,6,8,10]
 
 max_v = max(np.max(vel_rebound), np.max(vel_compression))
@@ -149,20 +112,16 @@ sig_velocities = [v for v in sig_velocities if v <= max_v]
 sig_rebound = np.interp(sig_velocities, vel_rebound, c_rebound)
 sig_compression = np.interp(sig_velocities, vel_compression, c_compression)
 
-#-------------------------------------------------
-# metadata
-#-------------------------------------------------
+#Metadata
 damper_used = input("Enter damper used: ")
 test_type = input("Enter test type: ")
 tester = input("Enter tester name: ")
 
 now = datetime.now()
 date_time_string = now.strftime("%Y-%m-%d %H:%M:%S")
-timestamp = now.strftime("%Y%m%d_%H%M%S")
+timestamp = now.strftime("%m-%d-%Y")
 
-#-------------------------------------------------
-# Plot
-#-------------------------------------------------
+#Plot
 plt.figure(figsize=(10,7))
 
 plt.plot(vel_rebound, c_rebound, label="Rebound")
@@ -180,18 +139,14 @@ plt.xlim(0, max_v)
 
 plt.subplots_adjust(bottom=0.30)
 
-#-------------------------------------------------
-# Title
-#-------------------------------------------------
+#Title
 title = f"DC_Report_[{data_filename}]"
 plt.title(title, fontsize=14)
 
 subtitle = f"{date_time_string}\nDamper: {damper_used} | Test: {test_type} | Tester: {tester}"
 plt.figtext(0.5, 0.93, subtitle, ha="center", fontsize=10)
 
-#-------------------------------------------------
-# Report text
-#-------------------------------------------------
+#Report Text
 report_lines = ["Significant Damping Coefficients\n"]
 
 for v,r,c in zip(sig_velocities, sig_rebound, sig_compression):
@@ -201,14 +156,15 @@ report_text = "\n".join(report_lines)
 
 plt.figtext(0.15, 0.02, report_text, ha="left", fontsize=11)
 
-#-------------------------------------------------
-# Save Report
-#-------------------------------------------------
-report_filename = f"DC_Report_{data_filename}_{timestamp}.jpg"
+#Save Report File
+report_filename = f"DC_Report_['{data_filename}']__{timestamp}.jpg"
 save_path = os.path.join(os.path.dirname(file_path), report_filename)
 
 plt.savefig(save_path, dpi=300, bbox_inches='tight')
 plt.close()
+
+# Open the saved report automatically on Windows
+os.startfile(save_path)
 
 print("Report generated:")
 print(save_path)
