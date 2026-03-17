@@ -126,7 +126,7 @@ tester = input("Enter tester name: ")
 
 now = datetime.now()
 date_time_string = now.strftime("%m/%d/%Y %H:%M:%S")
-timestamp = now.strftime("%m-%d-%Y")
+timestamp = now.strftime("%m-%d-%Y_%M%S")
 
 #Plot
 
