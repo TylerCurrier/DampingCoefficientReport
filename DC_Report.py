@@ -3,12 +3,6 @@
 #March 16, 2026
 #49ers Racing IC - Vehicle Dynamics
 
-#!!Things to add
-#   input for damper settings to put on report
-#   more test specifics: valve settings, lsC, hsC, lsR, hsR.
-#   look at what constant values can be grabbed from the csv and maybe include some
-
-
 #This program is for interpreting CSV outputs from the CTW damper dyno
 
 #import libraries
@@ -22,7 +16,7 @@ import os
 #open filepicker
 Tk().withdraw()
 #initial_csv_folder = r"C:\Users\DYNO\Documents\CTW Automation\Data\CSV Files"
-initial_csv_folder = r"E:\FSAE"
+initial_csv_folder = r"E:\FSAE" #uncomment for use on dev platform
 file_path = filedialog.askopenfilename(
     title="Select CSV File",
     initialdir= initial_csv_folder,
@@ -189,7 +183,7 @@ plt.figtext(0.1, 0.1, report_text, ha="left", fontsize=11)
 
 #Save Report File
 #output_folder = r"C:\Users\DYNO\Documents\CTW Automation\Data\DC_Reports"
-output_folder = r"E:\FSAE"
+output_folder = r"E:\FSAE" #uncomment for use on dev platform
 os.makedirs(output_folder, exist_ok=True)
 
 report_filename = f"DC_Report_['{data_filename}']__{timestamp}.jpg"
