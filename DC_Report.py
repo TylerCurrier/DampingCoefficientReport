@@ -15,8 +15,8 @@ import os
 
 #open filepicker
 Tk().withdraw()
-#initial_csv_folder = r"C:\Users\DYNO\Documents\CTW Automation\Data\CSV Files"
-initial_csv_folder = r"E:\FSAE" #uncomment for use on dev platform
+initial_csv_folder = r"C:\Users\DYNO\Documents\CTW Automation\Data\CSV Files"
+#initial_csv_folder = r"E:\FSAE" #uncomment this line and comment line above for use on dev platform
 file_path = filedialog.askopenfilename(
     title="Select CSV File",
     initialdir= initial_csv_folder,
@@ -182,8 +182,8 @@ report_text = "\n".join(report_lines)
 plt.figtext(0.1, 0.1, report_text, ha="left", fontsize=11)
 
 #Save Report File
-#output_folder = r"C:\Users\DYNO\Documents\CTW Automation\Data\DC_Reports"
-output_folder = r"E:\FSAE" #uncomment for use on dev platform
+output_folder = r"C:\Users\DYNO\Documents\CTW Automation\Data\DC_Reports"
+#output_folder = r"E:\FSAE" #uncomment this line and comment line above for use on dev platform
 os.makedirs(output_folder, exist_ok=True)
 
 report_filename = f"DC_Report_['{data_filename}']__{timestamp}.jpg"
