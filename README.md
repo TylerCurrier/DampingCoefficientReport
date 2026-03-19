@@ -1,4 +1,9 @@
-hehe dont read me
+This program is designed to make a data report on damping properties.
+The intended input is a CSV from a CTW Damper DYNO
+
+
+
+
 
 to create a pull from the DYNO laptop,
 1. open git bash
