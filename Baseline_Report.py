@@ -1,9 +1,8 @@
-#Baseline_report.py
-#Tyler Currier
-#March 23, 2026
-#49ers Racing IC - Vehicle Dynamics
+# Baseline_report.py
+# Tyler Currier
+# March 23, 2026
+# 49ers Racing IC - Vehicle Dynamics
 
-#import libraries
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -11,13 +10,13 @@ from tkinter import Tk, filedialog
 from datetime import datetime
 import os
 
-#open filepicker
+# File picker
 Tk().withdraw()
 
 initial_csv_folder = r"E:\FSAE\LSBase CSV"
 file_path = filedialog.askopenfilename(
     title="Select CSV File",
-    initialdir= initial_csv_folder,
+    initialdir=initial_csv_folder,
     filetypes=[("CSV files", "*.csv"), ("all files", "*.*")]
 )
 
@@ -27,7 +26,7 @@ if not file_path:
 
 data_filename = os.path.splitext(os.path.basename(file_path))[0]
 
-#Detect Data Header Row
+# Detect header row
 with open(file_path, 'r') as f:
     lines = f.readlines()
 
@@ -41,10 +40,9 @@ if header_row is None:
     print("Could not detect velocity/force header row.")
     exit()
 
-#Load CSV File
+# Load data
 data = pd.read_csv(file_path, skiprows=header_row)
 
-#Detect Velocity and Force Columns
 velocity_col = None
 force_col = None
 
@@ -61,12 +59,12 @@ if velocity_col is None or force_col is None:
 velocity = data[velocity_col].to_numpy()
 force = data[force_col].to_numpy()
 
-#Remove NaN Values
+# Remove NaNs
 valid = ~(np.isnan(velocity) | np.isnan(force))
 velocity = velocity[valid]
 force = force[valid]
 
-#Split Compression and Rebound Values
+# Split rebound/compression
 rebound_mask = velocity > 0
 compression_mask = velocity < 0
 
@@ -76,49 +74,78 @@ force_rebound = force[rebound_mask]
 vel_compression = np.abs(velocity[compression_mask])
 force_compression = np.abs(force[compression_mask])
 
-#Bin Dyno Data
-def bin_data(vel, force, bin_width=0.05):
+# Sort data
+sort_r = np.argsort(vel_rebound)
+vel_rebound = vel_rebound[sort_r]
+force_rebound = force_rebound[sort_r]
 
-    bins = np.arange(0, np.max(vel), bin_width)
-    bin_index = np.digitize(vel, bins)
+sort_c = np.argsort(vel_compression)
+vel_compression = vel_compression[sort_c]
+force_compression = force_compression[sort_c]
 
-    binned_vel = []
-    binned_force = []
-
-    for i in range(1, len(bins)):
-        mask = bin_index == i
-
-        if np.sum(mask) > 5:
-            binned_vel.append(np.mean(vel[mask]))
-            binned_force.append(np.mean(force[mask]))
-
-    return np.array(binned_vel), np.array(binned_force)
-
-vel_rebound, force_rebound = bin_data(vel_rebound, force_rebound)
-vel_compression, force_compression = bin_data(vel_compression, force_compression)
-
-#Smooth Forces
+# Smooth forces
 window = 5
-
 force_rebound = np.convolve(force_rebound, np.ones(window)/window, mode='same')
 force_compression = np.convolve(force_compression, np.ones(window)/window, mode='same')
 
-#Compute Damping Coefficient  c = F/v
-min_velocity = 0.05
+# -----------------------------
+# 🔥 BEST FIT (1–2.5 in/s ONLY)
+# -----------------------------
 
-c_rebound = np.abs(force_rebound / np.maximum(vel_rebound, min_velocity))
-c_compression = np.abs(force_compression / np.maximum(vel_compression, min_velocity))
+fit_min_velocity = 1.0
+fit_max_velocity = 2.5
 
-#Significant Velocities
-sig_velocities = [3]
+mask_fit_r = (vel_rebound >= fit_min_velocity) & (vel_rebound <= fit_max_velocity)
+mask_fit_c = (vel_compression >= fit_min_velocity) & (vel_compression <= fit_max_velocity)
 
-max_v = max(np.max(vel_rebound), np.max(vel_compression))
-sig_velocities = [v for v in sig_velocities if v <= max_v]
+# Quadratic fit: F = a*v^2 + b*v + c
+coef_r = np.polyfit(vel_rebound[mask_fit_r], force_rebound[mask_fit_r], 2)
+coef_c = np.polyfit(vel_compression[mask_fit_c], force_compression[mask_fit_c], 2)
 
-sig_rebound = np.interp(sig_velocities, vel_rebound, c_rebound)
-sig_compression = np.interp(sig_velocities, vel_compression, c_compression)
+# Evaluate at 3 in/s
+v_target = 3.0
 
-#Metadata -- user input
+force_r_3 = np.polyval(coef_r, v_target)
+force_c_3 = np.polyval(coef_c, v_target)
+
+c_rebound_3 = abs(force_r_3 / v_target)
+c_compression_3 = abs(force_c_3 / v_target)
+
+# -----------------------------
+# Plot (same-axis style)
+# -----------------------------
+
+v_plot = np.linspace(0, max(np.max(vel_rebound), np.max(vel_compression)), 300)
+
+fit_curve_r = np.polyval(coef_r, v_plot)
+fit_curve_c = np.polyval(coef_c, v_plot)
+
+plt.figure(figsize=(10,7))
+
+# Raw data
+plt.scatter(vel_rebound, force_rebound, s=5, alpha=0.3, label="Rebound Raw")
+plt.scatter(vel_compression, force_compression, s=5, alpha=0.3, label="Compression Raw")
+
+# Fit curves
+plt.plot(v_plot, fit_curve_r, linewidth=2, linestyle='-', label="Rebound Fit (1–2.5 in/s)")
+plt.plot(v_plot, fit_curve_c, linewidth=2, linestyle='--', label="Compression Fit (1–2.5 in/s)")
+
+# Highlight 3 in/s
+plt.scatter([v_target], [force_r_3], s=80)
+plt.scatter([v_target], [force_c_3], s=80)
+
+plt.xlabel("Velocity (in/s)")
+plt.ylabel("Force (lb)")
+plt.grid(True)
+plt.legend()
+
+# Move graph up to make room for text
+plt.subplots_adjust(bottom=0.35)
+
+# -----------------------------
+# Metadata
+# -----------------------------
+
 damper_used = input("Enter damper used: ")
 test_type = input("Enter test type: ")
 tester = input("Enter tester name: ")
@@ -131,65 +158,34 @@ now = datetime.now()
 date_time_string = now.strftime("%m/%d/%Y %H:%M:%S")
 timestamp = now.strftime("%m-%d-%Y_%M%S")
 
-#Plot
-
-min_plot_velocity = 0.2  # in/s, adjust as needed
-# For rebound
-mask_rebound = vel_rebound >= min_plot_velocity
-vel_rebound_plot = vel_rebound[mask_rebound]
-c_rebound_plot = c_rebound[mask_rebound]
-
-# For compression
-mask_compression = vel_compression >= min_plot_velocity
-vel_compression_plot = vel_compression[mask_compression]
-c_compression_plot = c_compression[mask_compression]
-
-plt.figure(figsize=(10,7))
-plt.plot(vel_rebound_plot, c_rebound_plot, label="Rebound")
-plt.plot(vel_compression_plot, c_compression_plot, label="Compression")
-
-plt.scatter(sig_velocities, sig_rebound)
-plt.scatter(sig_velocities, sig_compression)
-
-plt.xlabel("Velocity (in/s)")
-plt.ylabel("Damping Coefficient (lb*s/in)")
-plt.grid(True)
-plt.legend()
-plt.xlim(min_plot_velocity, max_v)
-plt.subplots_adjust(bottom=0.30)
-
-#Title
 title = f"DC_Report_[{data_filename}]"
-plt.title(title, fontsize=14)
+plt.title(title)
 
 subtitle = f"{date_time_string}\nDamper: {damper_used} | Test: {test_type} | Tester: {tester}"
-plt.figtext(0.5, 0.93, subtitle, ha="center", fontsize=10)
+plt.figtext(0.5, 0.92, subtitle, ha="center")
 
-subtitle = f"Valving {d_lsC},{d_hsC},{d_lsR},{d_hsR}"
-plt.figtext(0.7, 0.1, subtitle, ha="center", fontsize=10)
+valving = f"Valving {d_lsC},{d_hsC},{d_lsR},{d_hsR}"
+plt.figtext(0.7, 0.12, valving, ha="center")
 
+# Lowered report text
+report = (
+    f"Damping Coefficients @ 3 in/s\n\n"
+    f"Rebound: {c_rebound_3:.2f} lb*s/in\n"
+    f"Compression: {c_compression_3:.2f} lb*s/in"
+)
 
-#Report Text
-report_lines = ["Damping Coefficients Values\n"]
+plt.figtext(0.1, 0.12, report)
 
-for v,r,c in zip(sig_velocities, sig_rebound, sig_compression):
-    report_lines.append(f"{v} in/s  | Rebound: {r:.2f}  Compression: {c:.2f}")
-
-report_text = "\n".join(report_lines)
-
-plt.figtext(0.1, 0.1, report_text, ha="left", fontsize=11)
-
-#Save Report File
+# Save
 output_folder = r"E:\FSAE\LSBase Out"
 os.makedirs(output_folder, exist_ok=True)
 
-report_filename = f"DC_Report_['{data_filename}']__{timestamp}.jpg"
-save_path = os.path.join(output_folder, report_filename)
+filename = f"DC_Report_[{data_filename}]_{timestamp}.jpg"
+save_path = os.path.join(output_folder, filename)
 
 plt.savefig(save_path, dpi=300, bbox_inches='tight')
 plt.close()
 
-# Open the saved report automatically on Windows
 os.startfile(save_path)
 
 print("Report generated:")
