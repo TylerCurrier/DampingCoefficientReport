@@ -1,9 +1,7 @@
-#DC_Report.py
+#Baseline_report.py
 #Tyler Currier
-#March 16, 2026
+#March 23, 2026
 #49ers Racing IC - Vehicle Dynamics
-
-#This program is for interpreting CSV outputs from the CTW damper dyno
 
 #import libraries
 import numpy as np
@@ -15,8 +13,8 @@ import os
 
 #open filepicker
 Tk().withdraw()
-#initial_csv_folder = r"C:\Users\DYNO\Documents\CTW Automation\Data\CSV Files"
-initial_csv_folder = r"E:\FSAE\LSBase CSV" #uncomment this line and comment line above for use on dev platform
+
+initial_csv_folder = r"E:\FSAE\LSBase CSV"
 file_path = filedialog.askopenfilename(
     title="Select CSV File",
     initialdir= initial_csv_folder,
@@ -112,7 +110,7 @@ c_rebound = np.abs(force_rebound / np.maximum(vel_rebound, min_velocity))
 c_compression = np.abs(force_compression / np.maximum(vel_compression, min_velocity))
 
 #Significant Velocities
-sig_velocities = [1,2,4,6,8,10]
+sig_velocities = [3]
 
 max_v = max(np.max(vel_rebound), np.max(vel_compression))
 sig_velocities = [v for v in sig_velocities if v <= max_v]
@@ -167,7 +165,7 @@ plt.title(title, fontsize=14)
 subtitle = f"{date_time_string}\nDamper: {damper_used} | Test: {test_type} | Tester: {tester}"
 plt.figtext(0.5, 0.93, subtitle, ha="center", fontsize=10)
 
-subtitle = f"Low Speed Compression: {d_lsC} | Low Speed Rebound: {d_lsR}\nHigh Speed Compression: {d_hsC} | High Speed Rebound: {d_hsR}"
+subtitle = f"Valving {d_lsC},{d_hsC},{d_lsR},{d_hsR}"
 plt.figtext(0.7, 0.1, subtitle, ha="center", fontsize=10)
 
 
@@ -182,8 +180,7 @@ report_text = "\n".join(report_lines)
 plt.figtext(0.1, 0.1, report_text, ha="left", fontsize=11)
 
 #Save Report File
-#output_folder = r"C:\Users\DYNO\Documents\CTW Automation\Data\DC_Reports"
-output_folder = r"E:\FSAE\LSBase Out" #uncomment this line and comment line above for use on dev platform
+output_folder = r"E:\FSAE\LSBase Out"
 os.makedirs(output_folder, exist_ok=True)
 
 report_filename = f"DC_Report_['{data_filename}']__{timestamp}.jpg"
