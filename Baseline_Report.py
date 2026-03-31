@@ -13,7 +13,7 @@ import os
 # File picker
 Tk().withdraw()
 
-initial_csv_folder = r"E:\FSAE\LSBase CSV"
+initial_csv_folder = r"E:\FSAE\24 Car Damper Baselines\csv_out\O6" #filepath to be manually changed per test
 file_path = filedialog.askopenfilename(
     title="Select CSV File",
     initialdir=initial_csv_folder,
@@ -149,10 +149,10 @@ plt.subplots_adjust(bottom=0.35)
 damper_used = input("Enter damper used: ")
 test_type = input("Enter test type: ")
 tester = input("Enter tester name: ")
-d_lsC = input("Enter low speed compression valve setting: ")
-d_hsC = input("Enter high speed compression valve setting: ")
-d_lsR = input("Enter low speed rebound valve setting: ")
-d_hsR = input("Enter high speed rebound valve setting: ")
+#d_lsC = input("Enter low speed compression valve setting: ")
+#d_hsC = input("Enter high speed compression valve setting: ")
+#d_lsR = input("Enter low speed rebound valve setting: ")
+#d_hsR = input("Enter high speed rebound valve setting: ")
 
 now = datetime.now()
 date_time_string = now.strftime("%m/%d/%Y %H:%M:%S")
@@ -164,8 +164,8 @@ plt.title(title)
 subtitle = f"{date_time_string}\nDamper: {damper_used} | Test: {test_type} | Tester: {tester}"
 plt.figtext(0.5, 0.92, subtitle, ha="center")
 
-valving = f"Valving {d_lsC},{d_hsC},{d_lsR},{d_hsR}"
-plt.figtext(0.7, 0.12, valving, ha="center")
+#valving = f"Valving {d_lsC},{d_hsC},{d_lsR},{d_hsR}"
+#plt.figtext(0.7, 0.12, valving, ha="center")
 
 # Lowered report text
 report = (
@@ -177,7 +177,7 @@ report = (
 plt.figtext(0.1, 0.12, report)
 
 # Save
-output_folder = r"E:\FSAE\LSBase Out"
+output_folder = r"E:\FSAE\24 Car Damper Baselines\DC_Reports\O6" #filepath to be manually changed per test
 os.makedirs(output_folder, exist_ok=True)
 
 filename = f"DC_Report_[{data_filename}]_{timestamp}.jpg"
