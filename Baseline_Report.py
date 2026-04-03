@@ -89,7 +89,7 @@ force_rebound = np.convolve(force_rebound, np.ones(window)/window, mode='same')
 force_compression = np.convolve(force_compression, np.ones(window)/window, mode='same')
 
 # -----------------------------
-# 🔥 BEST FIT (1–2.5 in/s ONLY)
+# Fit Line (1–2.5 in/s ONLY)
 # -----------------------------
 
 fit_min_velocity = 1.0
@@ -112,7 +112,7 @@ c_rebound_3 = abs(force_r_3 / v_target)
 c_compression_3 = abs(force_c_3 / v_target)
 
 # -----------------------------
-# Plot (same-axis style)
+# Plot (same-axis)
 # -----------------------------
 
 v_plot = np.linspace(0, max(np.max(vel_rebound), np.max(vel_compression)), 300)
